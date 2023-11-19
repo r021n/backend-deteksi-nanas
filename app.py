@@ -9,7 +9,15 @@ app = Flask(__name__)  # Membuat objek aplikasi Flask
 
 @app.route("/")
 def root():
-    return render_template("upload.html")  # Merender template HTML "camera.html"
+    return render_template("index.html")  # Merender template HTML "index.html"
+
+@app.route("/camera")
+def camera():
+    return render_template("camera.html")
+
+@app.route("/upload")
+def upload():
+    return render_template("upload.html")
 
 @app.route("/detect", methods=["POST"])
 def detect():
