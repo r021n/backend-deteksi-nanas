@@ -9,13 +9,43 @@
 <button id="snap">Snap Photo</button>
 
 <!-- Elemen canvas untuk menampilkan gambar dan bounding boxes -->
-<canvas style= "width: 640; height: 480;" id="canvas"></canvas>
+<canvas width="640" height="480" id="canvas"></canvas>
+
+<!-- elemen tabel -->
+<table>
+    <tr>
+        <th>Kategori</th>
+        <th>jumlah</th>
+    </tr>
+    <tr>
+        <td>Mentah</td>
+        <td id="mentah"></td>
+    </tr>
+    <tr>
+        <td>Kurang Matang</td>
+        <td id="kurang_matang"></td>
+    </tr>
+    <tr>
+        <td>Matang</td>
+        <td id="matang"></td>
+    </tr>
+    <tr>
+        <td>Terlalu Matang</td>
+        <td id="terlalu_matang"></td>
+    </tr>
+</table>
 
 <script>
 var video = document.getElementById('video');  // Mendapatkan elemen video dari HTML
 var canvas = document.getElementById('canvas');  // Mendapatkan elemen canvas dari HTML
 var context = canvas.getContext('2d');  // Mendapatkan konteks gambar 2D dari canvas
 var snap = document.getElementById('snap');  // Mendapatkan elemen tombol 'Snap Photo'
+
+// variabel menyimpan jumlah nanas yang tedeteksi
+let jumlahMentah = 0
+let jumlahKurangMatang = 0
+let jumlahMatang = 0
+let jumlahTerlaluMatang = 0
 
 // Mendapatkan akses ke kamera
 if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -27,8 +57,8 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
 
 // Event listener untuk tombol "Snap Photo"
 snap.addEventListener('click', function () {
-    // Mengambil gambar dari video dan menggambar di canvas
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    // Mengambil gambar dari video
+    context.drawImage(video, 0, 0);
 
     // Mengambil data URL dari gambar di canvas
     var imageDataURL = canvas.toDataURL();
@@ -57,7 +87,7 @@ function draw_image_and_boxes(file, boxes) {
         context.clearRect(0, 0, canvas.width, canvas.height);  // Menghapus gambar sebelumnya di canvas
         canvas.width = img.width;  // Mengatur lebar canvas sesuai dengan lebar gambar
         canvas.height = img.height;  // Mengatur tinggi canvas sesuai dengan tinggi gambar
-        context.drawImage(img, 0, 0);  // Menggambar gambar di canvas
+        context.drawImage(img, 0, 0, canvas.width, canvas.height);  // Menggambar gambar di canvas
         context.strokeStyle = "#00FF00";  // Warna garis untuk bounding boxes
         context.lineWidth = 3;  // Ketebalan garis bounding boxes
         context.font = "18px serif";  // Font teks untuk label bounding boxes
@@ -69,8 +99,39 @@ function draw_image_and_boxes(file, boxes) {
             context.fillStyle = "#000000";  // Warna teks label
             context.fillText(label, x1, y1 + 18);  // Menuliskan teks label
         });
+
+        // reset jumlah nanas yang terdeteksi
+        jumlahMentah = 0
+        jumlahKurangMatang = 0
+        jumlahMatang = 0
+        jumlahTerlaluMatang = 0
+
+        // Update jumlah nanas terdeteksi sesuai label
+        boxes.forEach(([x1, y1, x2, y2, label, prob])=>{
+            switch(label){
+                case "Mentah":
+                    jumlahMentah++;
+                    break;
+                case "Kurang Matang":
+                    jumlahKurangMatang++;
+                    break;
+                case "Matang":
+                    jumlahMatang++;
+                    break;
+                case "Terlalu Matang":
+                    jumlahTerlaluMatang++;
+                    break;
+            }
+        });
+
+        // menampilkan jumlah nanas yang terdeteksi pada tabel
+        document.getElementById('mentah').innerText = jumlahMentah
+        document.getElementById('kurang_matang').innerText = jumlahKurangMatang
+        document.getElementById('matang').innerText = jumlahMatang
+        document.getElementById('terlalu_matang').innerText = jumlahTerlaluMatang
     };
 }
+
 
 // Fungsi untuk mengubah data URL menjadi blob
 function dataURItoBlob(dataURI) {

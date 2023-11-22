@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,7 +14,35 @@
 <body>
     <input id="uploadInput" type="file"/>
     <canvas></canvas>
+    <!-- elemen tabel -->
+    <table>
+        <tr>
+            <th>Kategori</th>
+            <th>jumlah</th>
+        </tr>
+        <tr>
+            <td>Mentah</td>
+            <td id="mentah"></td>
+        </tr>
+        <tr>
+            <td>Kurang Matang</td>
+            <td id="kurang_matang"></td>
+        </tr>
+        <tr>
+            <td>Matang</td>
+            <td id="matang"></td>
+        </tr>
+        <tr>
+            <td>Terlalu Matang</td>
+            <td id="terlalu_matang"></td>
+        </tr>
+    </table>
     <script>
+         // variabel menyimpan jumlah nanas yang tedeteksi
+        let jumlahMentah = 0
+        let jumlahKurangMatang = 0
+        let jumlahMatang = 0
+        let jumlahTerlaluMatang = 0
        /**
        * "Upload" button onClick handler: uploads selected 
        * image file to backend, receives an array of
@@ -62,7 +89,37 @@
                   ctx.fillStyle = "#000000";
                   ctx.fillText(label,x1,y1+18);
               });
-          }
+
+              // reset jumlah nanas yang terdeteksi
+            jumlahMentah = 0
+            jumlahKurangMatang = 0
+            jumlahMatang = 0
+            jumlahTerlaluMatang = 0
+
+            // Update jumlah nanas terdeteksi sesuai label
+            boxes.forEach(([x1, y1, x2, y2, label, prob])=>{
+                switch(label){
+                    case "Mentah":
+                        jumlahMentah++;
+                        break;
+                    case "Kurang Matang":
+                        jumlahKurangMatang++;
+                        break;
+                    case "Matang":
+                        jumlahMatang++;
+                        break;
+                    case "Terlalu Matang":
+                        jumlahTerlaluMatang++;
+                        break;
+                }
+            });
+
+            // menampilkan jumlah nanas yang terdeteksi pada tabel
+            document.getElementById('mentah').innerText = jumlahMentah
+            document.getElementById('kurang_matang').innerText = jumlahKurangMatang
+            document.getElementById('matang').innerText = jumlahMatang
+            document.getElementById('terlalu_matang').innerText = jumlahTerlaluMatang
+          };
        }
   </script>  
 </body>
