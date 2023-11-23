@@ -1,5 +1,4 @@
 from ultralytics import YOLO  # Mengimpor kelas YOLO dari pustaka ultralytics
-from PIL import Image  # Mengimpor kelas Image dari pustaka PIL (Pillow)
 
 def detect_objects_on_image(buf):
     model = YOLO("best_600_epoch.pt")  # Membuat objek model YOLO dengan model yang diberikan
