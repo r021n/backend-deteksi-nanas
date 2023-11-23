@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <body>
 
 <!-- Elemen untuk menampilkan video dari kamera -->
@@ -34,6 +35,7 @@
         <td id="terlalu_matang"></td>
     </tr>
 </table>
+<div id="myPlot" ></div>
 
 <script>
 var video = document.getElementById('video');  // Mendapatkan elemen video dari HTML
@@ -129,6 +131,12 @@ function draw_image_and_boxes(file, boxes) {
         document.getElementById('kurang_matang').innerText = jumlahKurangMatang
         document.getElementById('matang').innerText = jumlahMatang
         document.getElementById('terlalu_matang').innerText = jumlahTerlaluMatang
+        
+        const xArray = ["Mentah", "Kurang Matang", "Matang", "Terlalu Matang"];
+        const yArray = [jumlahMentah, jumlahKurangMatang, jumlahMatang, jumlahTerlaluMatang];
+        const layout = {title:"Grafik Kategori Kematangan Nanas"};
+        const data = [{labels:xArray, values:yArray, type:"pie"}];
+        Plotly.newPlot("myPlot", data, layout);
     };
 }
 

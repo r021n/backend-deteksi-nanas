@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <head>
     <meta charset="UTF-8">
     <title>YOLOv8 Object Detection</title>
@@ -37,6 +38,7 @@
             <td id="terlalu_matang"></td>
         </tr>
     </table>
+    <div id="myPlot" ></div>
     <script>
          // variabel menyimpan jumlah nanas yang tedeteksi
         let jumlahMentah = 0
@@ -119,7 +121,14 @@
             document.getElementById('kurang_matang').innerText = jumlahKurangMatang
             document.getElementById('matang').innerText = jumlahMatang
             document.getElementById('terlalu_matang').innerText = jumlahTerlaluMatang
+            
+            const xArray = ["Mentah", "Kurang Matang", "Matang", "Terlalu Matang"];
+            const yArray = [jumlahMentah, jumlahKurangMatang, jumlahMatang, jumlahTerlaluMatang];
+            const layout = {title:"Grafik Kategori Kematangan Nanas"};
+            const data = [{labels:xArray, values:yArray, type:"pie"}];
+            Plotly.newPlot("myPlot", data, layout);
           };
+
        }
   </script>  
 </body>
