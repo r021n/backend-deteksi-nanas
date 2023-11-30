@@ -1,158 +1,161 @@
 <!DOCTYPE html>
 <html>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
 <body>
 
-<a href="{{ url_for('root') }}">Home</a>
-<!-- Elemen untuk menampilkan video dari kamera -->
-<video id="video" width="640" height="480" autoplay></video>
+    <a href="{{ url_for('root') }}">Home</a>
+    <!-- Elemen untuk menampilkan video dari kamera -->
+    <video id="video" width="640" height="480" autoplay></video>
 
-<!-- Tombol untuk mengambil foto dari kamera -->
-<button id="snap">Snap Photo</button>
+    <!-- Tombol untuk mengambil foto dari kamera -->
+    <button id="snap">Snap Photo</button>
 
-<!-- Elemen canvas untuk menampilkan gambar dan bounding boxes -->
-<canvas width="640" height="480" id="canvas"></canvas>
+    <!-- Elemen canvas untuk menampilkan gambar dan bounding boxes -->
+    <canvas width="640" height="480" id="canvas"></canvas>
 
-<!-- elemen tabel -->
-<table>
-    <tr>
-        <th>Kategori</th>
-        <th>jumlah</th>
-    </tr>
-    <tr>
-        <td>Mentah</td>
-        <td id="mentah"></td>
-    </tr>
-    <tr>
-        <td>Kurang Matang</td>
-        <td id="kurang_matang"></td>
-    </tr>
-    <tr>
-        <td>Matang</td>
-        <td id="matang"></td>
-    </tr>
-    <tr>
-        <td>Terlalu Matang</td>
-        <td id="terlalu_matang"></td>
-    </tr>
-</table>
-<div id="myPlot" ></div>
+    <!-- elemen tabel -->
+    <table>
+        <tr>
+            <th>Kategori</th>
+            <th>jumlah</th>
+        </tr>
+        <tr>
+            <td>Mentah</td>
+            <td id="mentah"></td>
+        </tr>
+        <tr>
+            <td>Kurang Matang</td>
+            <td id="kurang_matang"></td>
+        </tr>
+        <tr>
+            <td>Matang</td>
+            <td id="matang"></td>
+        </tr>
+        <tr>
+            <td>Terlalu Matang</td>
+            <td id="terlalu_matang"></td>
+        </tr>
+    </table>
+    <div id="myPlot" ></div>
 
-<script>
-var video = document.getElementById('video');  // Mendapatkan elemen video dari HTML
-var canvas = document.getElementById('canvas');  // Mendapatkan elemen canvas dari HTML
-var context = canvas.getContext('2d');  // Mendapatkan konteks gambar 2D dari canvas
-var snap = document.getElementById('snap');  // Mendapatkan elemen tombol 'Snap Photo'
+    <script>
+        var video = document.getElementById('video');  // Mendapatkan elemen video dari HTML
+        var canvas = document.getElementById('canvas');  // Mendapatkan elemen canvas dari HTML
+        var context = canvas.getContext('2d');  // Mendapatkan konteks gambar 2D dari canvas
+        var snap = document.getElementById('snap');  // Mendapatkan elemen tombol 'Snap Photo'
 
-// variabel menyimpan jumlah nanas yang tedeteksi
-let jumlahMentah = 0
-let jumlahKurangMatang = 0
-let jumlahMatang = 0
-let jumlahTerlaluMatang = 0
+        // variabel menyimpan jumlah nanas yang tedeteksi
+        let jumlahMentah = 0
+        let jumlahKurangMatang = 0
+        let jumlahMatang = 0
+        let jumlahTerlaluMatang = 0
 
-// Mendapatkan akses ke kamera
-if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    navigator.mediaDevices.getUserMedia({ video: true }).then(function (stream) {
-        video.srcObject = stream;  // Mengatur objek sumber video ke stream dari kamera
-        video.play();  // Memulai pemutaran video
-    });
-}
+        // Mendapatkan akses ke kamera
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true }).then(function (stream) {
+                video.srcObject = stream;  // Mengatur objek sumber video ke stream dari kamera
+                video.play();  // Memulai pemutaran video
+            });
+        }
 
-// Event listener untuk tombol "Snap Photo"
-snap.addEventListener('click', function () {
-    // Mengambil gambar dari video
-    context.drawImage(video, 0, 0);
+        // Event listener untuk tombol "Snap Photo"
+        snap.addEventListener('click', function () {
+            // Mengambil gambar dari video
+            context.drawImage(video, 0, 0);
 
-    // Mengambil data URL dari gambar di canvas
-    var imageDataURL = canvas.toDataURL();
+            // Mengambil data URL dari gambar di canvas
+            var imageDataURL = canvas.toDataURL();
 
-    // Membuat objek FormData untuk mengirim data ke backend
-    var data = new FormData();
-    data.append("image_file", dataURItoBlob(imageDataURL), "image_file");
+            // Membuat objek FormData untuk mengirim data ke backend
+            var data = new FormData();
+            data.append("image_file", dataURItoBlob(imageDataURL), "image_file");
 
-    // Mengirim data ke backend menggunakan fetch
-    fetch("/detect", {
-        method: "post",
-        body: data
-    })
-    .then(response => response.json())
-    .then(boxes => {
-        // Memanggil fungsi untuk menggambar gambar dan bounding boxes
-        draw_image_and_boxes(dataURItoBlob(imageDataURL), boxes);
-    });
-});
-
-// Fungsi untuk menggambar gambar dari file dan bounding boxes
-function draw_image_and_boxes(file, boxes) {
-    var img = new Image();
-    img.src = URL.createObjectURL(file);
-    img.onload = function () {
-        context.clearRect(0, 0, canvas.width, canvas.height);  // Menghapus gambar sebelumnya di canvas
-        canvas.width = img.width;  // Mengatur lebar canvas sesuai dengan lebar gambar
-        canvas.height = img.height;  // Mengatur tinggi canvas sesuai dengan tinggi gambar
-        context.drawImage(img, 0, 0, canvas.width, canvas.height);  // Menggambar gambar di canvas
-        context.strokeStyle = "#00FF00";  // Warna garis untuk bounding boxes
-        context.lineWidth = 3;  // Ketebalan garis bounding boxes
-        context.font = "18px serif";  // Font teks untuk label bounding boxes
-        boxes.forEach(([x1, y1, x2, y2, label]) => {
-            context.strokeRect(x1, y1, x2 - x1, y2 - y1);  // Menggambar bounding box
-            context.fillStyle = "#00ff00";  // Warna latar belakang label
-            var width = context.measureText(label).width;
-            context.fillRect(x1, y1, width + 10, 25);  // Menggambar latar belakang label
-            context.fillStyle = "#000000";  // Warna teks label
-            context.fillText(label, x1, y1 + 18);  // Menuliskan teks label
+            // Mengirim data ke backend menggunakan fetch
+            fetch("/detect", {
+                method: "post",
+                body: data
+            })
+                .then(response => response.json())
+                .then(boxes => {
+                    // Memanggil fungsi untuk menggambar gambar dan bounding boxes
+                    draw_image_and_boxes(dataURItoBlob(imageDataURL), boxes);
+                });
         });
 
-        // reset jumlah nanas yang terdeteksi
-        jumlahMentah = 0
-        jumlahKurangMatang = 0
-        jumlahMatang = 0
-        jumlahTerlaluMatang = 0
+        // Fungsi untuk menggambar gambar dari file dan bounding boxes
+        function draw_image_and_boxes(file, boxes) {
+            var img = new Image();
+            img.src = URL.createObjectURL(file);
+            img.onload = function () {
+                context.clearRect(0, 0, canvas.width, canvas.height);  // Menghapus gambar sebelumnya di canvas
+                canvas.width = img.width;  // Mengatur lebar canvas sesuai dengan lebar gambar
+                canvas.height = img.height;  // Mengatur tinggi canvas sesuai dengan tinggi gambar
+                context.drawImage(img, 0, 0, canvas.width, canvas.height);  // Menggambar gambar di canvas
+                context.strokeStyle = "#00FF00";  // Warna garis untuk bounding boxes
+                context.lineWidth = 3;  // Ketebalan garis bounding boxes
+                context.font = "18px serif";  // Font teks untuk label bounding boxes
+                boxes.forEach(([x1, y1, x2, y2, label]) => {
+                    context.strokeRect(x1, y1, x2 - x1, y2 - y1);  // Menggambar bounding box
+                    context.fillStyle = "#00ff00";  // Warna latar belakang label
+                    var width = context.measureText(label).width;
+                    context.fillRect(x1, y1, width + 10, 25);  // Menggambar latar belakang label
+                    context.fillStyle = "#000000";  // Warna teks label
+                    context.fillText(label, x1, y1 + 18);  // Menuliskan teks label
+                });
 
-        // Update jumlah nanas terdeteksi sesuai label
-        boxes.forEach(([x1, y1, x2, y2, label, prob])=>{
-            switch(label){
-                case "Mentah":
-                    jumlahMentah++;
-                    break;
-                case "Kurang Matang":
-                    jumlahKurangMatang++;
-                    break;
-                case "Matang":
-                    jumlahMatang++;
-                    break;
-                case "Terlalu Matang":
-                    jumlahTerlaluMatang++;
-                    break;
+                // reset jumlah nanas yang terdeteksi
+                jumlahMentah = 0
+                jumlahKurangMatang = 0
+                jumlahMatang = 0
+                jumlahTerlaluMatang = 0
+
+                // Update jumlah nanas terdeteksi sesuai label
+                boxes.forEach(([x1, y1, x2, y2, label, prob]) => {
+                    switch (label) {
+                        case "Mentah":
+                            jumlahMentah++;
+                            break;
+                        case "Kurang Matang":
+                            jumlahKurangMatang++;
+                            break;
+                        case "Matang":
+                            jumlahMatang++;
+                            break;
+                        case "Terlalu Matang":
+                            jumlahTerlaluMatang++;
+                            break;
+                    }
+                });
+
+                // menampilkan jumlah nanas yang terdeteksi pada tabel
+                document.getElementById('mentah').innerText = jumlahMentah
+                document.getElementById('kurang_matang').innerText = jumlahKurangMatang
+                document.getElementById('matang').innerText = jumlahMatang
+                document.getElementById('terlalu_matang').innerText = jumlahTerlaluMatang
+
+                // menampilkan grafik chart
+                const xArray = ["Mentah", "Kurang Matang", "Matang", "Terlalu Matang"];
+                const yArray = [jumlahMentah, jumlahKurangMatang, jumlahMatang, jumlahTerlaluMatang];
+                const layout = {title:"Grafik Kategori Kematangan Nanas"};
+                const data = [{labels:xArray, values:yArray, type:"pie"}];
+                Plotly.newPlot("myPlot", data, layout);
+            };
+        }
+
+
+        // Fungsi untuk mengubah data URL menjadi blob
+        function dataURItoBlob(dataURI) {
+            var byteString = atob(dataURI.split(',')[1]);
+            var ab = new ArrayBuffer(byteString.length);
+            var ia = new Uint8Array(ab);
+            for (var i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
             }
-        });
-
-        // menampilkan jumlah nanas yang terdeteksi pada tabel
-        document.getElementById('mentah').innerText = jumlahMentah
-        document.getElementById('kurang_matang').innerText = jumlahKurangMatang
-        document.getElementById('matang').innerText = jumlahMatang
-        document.getElementById('terlalu_matang').innerText = jumlahTerlaluMatang
-        
-        const xArray = ["Mentah", "Kurang Matang", "Matang", "Terlalu Matang"];
-        const yArray = [jumlahMentah, jumlahKurangMatang, jumlahMatang, jumlahTerlaluMatang];
-        const layout = {title:"Grafik Kategori Kematangan Nanas"};
-        const data = [{labels:xArray, values:yArray, type:"pie"}];
-        Plotly.newPlot("myPlot", data, layout);
-    };
-}
-
-
-// Fungsi untuk mengubah data URL menjadi blob
-function dataURItoBlob(dataURI) {
-    var byteString = atob(dataURI.split(',')[1]);
-    var ab = new ArrayBuffer(byteString.length);
-    var ia = new Uint8Array(ab);
-    for (var i = 0; i < byteString.length; i++) {
-        ia[i] = byteString.charCodeAt(i);
-    }
-    return new Blob([ab], { type: 'image/png' });
-}
-</script>
+            return new Blob([ab], { type: 'image/png' });
+        }
+    </script>
 
 </body>
+
 </html>

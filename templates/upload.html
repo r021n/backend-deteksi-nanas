@@ -1,20 +1,21 @@
 <!DOCTYPE html>
 <html lang="id">
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <head>
     <meta charset="UTF-8">
     <title>YOLOv8 Object Detection</title>
     <style>
         canvas {
-            display:block;
+            display: block;
             border: 1px solid black;
-            margin-top:10px;
+            margin-top: 10px;
         }
     </style>
 </head>
+
 <body>
     <a href="{{ url_for('root') }}">Home</a>
-    <input id="uploadInput" type="file"/>
+    <input id="uploadInput" type="file" />
     <canvas></canvas>
     <!-- elemen tabel -->
     <table>
@@ -39,98 +40,101 @@
             <td id="terlalu_matang"></td>
         </tr>
     </table>
-    <div id="myPlot" ></div>
+    <div id="myPlot"></div>
     <script>
-         // variabel menyimpan jumlah nanas yang tedeteksi
+        // variabel menyimpan jumlah nanas yang tedeteksi
         let jumlahMentah = 0
         let jumlahKurangMatang = 0
         let jumlahMatang = 0
         let jumlahTerlaluMatang = 0
-       /**
-       * "Upload" button onClick handler: uploads selected 
-       * image file to backend, receives an array of
-       * detected objects and draws them on top of image
-       */
-       const input = document.getElementById("uploadInput");
-       input.addEventListener("change",async(event) => {
-           const file = event.target.files[0];
-           const data = new FormData();
-           data.append("image_file",file,"image_file");
-           const response = await fetch("/detect",{
-               method:"post",
-               body:data
-           });
-           const boxes = await response.json();
-           draw_image_and_boxes(file,boxes);
-       })
-
-       /**
-       * Function draws the image from provided file
-       * and bounding boxes of detected objects on
-       * top of the image
-       * @param file Uploaded file object
-       * @param boxes Array of bounding boxes in format
-         [[x1,y1,x2,y2,object_type,probability],...]
-       */
-       function draw_image_and_boxes(file,boxes) {
-          const img = new Image()
-          img.src = URL.createObjectURL(file);
-          img.onload = () => {
-              const canvas = document.querySelector("canvas");
-              canvas.width = img.width;
-              canvas.height = img.height;
-              const ctx = canvas.getContext("2d");
-              ctx.drawImage(img,0,0);
-              ctx.strokeStyle = "#00FF00";
-              ctx.lineWidth = 3;
-              ctx.font = "18px serif";
-              boxes.forEach(([x1,y1,x2,y2,label]) => {
-                  ctx.strokeRect(x1,y1,x2-x1,y2-y1);
-                  ctx.fillStyle = "#00ff00";
-                  const width = ctx.measureText(label).width;
-                  ctx.fillRect(x1,y1,width+10,25);
-                  ctx.fillStyle = "#000000";
-                  ctx.fillText(label,x1,y1+18);
-              });
-
-              // reset jumlah nanas yang terdeteksi
-            jumlahMentah = 0
-            jumlahKurangMatang = 0
-            jumlahMatang = 0
-            jumlahTerlaluMatang = 0
-
-            // Update jumlah nanas terdeteksi sesuai label
-            boxes.forEach(([x1, y1, x2, y2, label, prob])=>{
-                switch(label){
-                    case "Mentah":
-                        jumlahMentah++;
-                        break;
-                    case "Kurang Matang":
-                        jumlahKurangMatang++;
-                        break;
-                    case "Matang":
-                        jumlahMatang++;
-                        break;
-                    case "Terlalu Matang":
-                        jumlahTerlaluMatang++;
-                        break;
-                }
+        /**
+        * "Upload" button onClick handler: uploads selected 
+        * image file to backend, receives an array of
+        * detected objects and draws them on top of image
+        */
+        const input = document.getElementById("uploadInput");
+        input.addEventListener("change", async (event) => {
+            const file = event.target.files[0];
+            const data = new FormData();
+            data.append("image_file", file, "image_file");
+            const response = await fetch("/detect", {
+                method: "post",
+                body: data
             });
+            const boxes = await response.json();
+            draw_image_and_boxes(file, boxes);
+        })
 
-            // menampilkan jumlah nanas yang terdeteksi pada tabel
-            document.getElementById('mentah').innerText = jumlahMentah
-            document.getElementById('kurang_matang').innerText = jumlahKurangMatang
-            document.getElementById('matang').innerText = jumlahMatang
-            document.getElementById('terlalu_matang').innerText = jumlahTerlaluMatang
-            
-            const xArray = ["Mentah", "Kurang Matang", "Matang", "Terlalu Matang"];
-            const yArray = [jumlahMentah, jumlahKurangMatang, jumlahMatang, jumlahTerlaluMatang];
-            const layout = {title:"Grafik Kategori Kematangan Nanas"};
-            const data = [{labels:xArray, values:yArray, type:"pie"}];
-            Plotly.newPlot("myPlot", data, layout);
-          };
+        /**
+        * Function draws the image from provided file
+        * and bounding boxes of detected objects on
+        * top of the image
+        * @param file Uploaded file object
+        * @param boxes Array of bounding boxes in format
+          [[x1,y1,x2,y2,object_type,probability],...]
+        */
+        function draw_image_and_boxes(file, boxes) {
+            const img = new Image()
+            img.src = URL.createObjectURL(file);
+            img.onload = () => {
+                const canvas = document.querySelector("canvas");
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0);
+                ctx.strokeStyle = "#00FF00";
+                ctx.lineWidth = 3;
+                ctx.font = "18px serif";
+                boxes.forEach(([x1, y1, x2, y2, label]) => {
+                    ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+                    ctx.fillStyle = "#00ff00";
+                    const width = ctx.measureText(label).width;
+                    ctx.fillRect(x1, y1, width + 10, 25);
+                    ctx.fillStyle = "#000000";
+                    ctx.fillText(label, x1, y1 + 18);
+                });
 
-       }
-  </script>  
+                // reset jumlah nanas yang terdeteksi
+                jumlahMentah = 0
+                jumlahKurangMatang = 0
+                jumlahMatang = 0
+                jumlahTerlaluMatang = 0
+
+                // Update jumlah nanas terdeteksi sesuai label
+                boxes.forEach(([x1, y1, x2, y2, label, prob]) => {
+                    switch (label) {
+                        case "Mentah":
+                            jumlahMentah++;
+                            break;
+                        case "Kurang Matang":
+                            jumlahKurangMatang++;
+                            break;
+                        case "Matang":
+                            jumlahMatang++;
+                            break;
+                        case "Terlalu Matang":
+                            jumlahTerlaluMatang++;
+                            break;
+                    }
+                });
+
+                // menampilkan jumlah nanas yang terdeteksi pada tabel
+                document.getElementById('mentah').innerText = jumlahMentah
+                document.getElementById('kurang_matang').innerText = jumlahKurangMatang
+                document.getElementById('matang').innerText = jumlahMatang
+                document.getElementById('terlalu_matang').innerText = jumlahTerlaluMatang
+
+
+                // menampilkan grafik chart
+                const xArray = ["Mentah", "Kurang Matang", "Matang", "Terlalu Matang"];
+                const yArray = [jumlahMentah, jumlahKurangMatang, jumlahMatang, jumlahTerlaluMatang];
+                const layout = {title:"Grafik Kategori Kematangan Nanas"};
+                const data = [{labels:xArray, values:yArray, type:"pie"}];
+                Plotly.newPlot("myPlot", data, layout);
+            };
+
+        }
+    </script>
 </body>
+
 </html>
